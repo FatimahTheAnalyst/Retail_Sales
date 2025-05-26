@@ -1,43 +1,46 @@
-# Retail Sales Analysis SQL Project
+# Retail Sales SQL Project
 
 ## Project Overview
 
 **Project Title**: Retail Sales Analysis  
 **Level**: Beginner  
-**Database**: `p1_retail_db`
+**Database**: `Retail Sales Project_db`
 
-This project is designed to demonstrate SQL skills and techniques typically used by data analysts to explore, clean, and analyze retail sales data. The project involves setting up a retail sales database, performing exploratory data analysis (EDA), and answering specific business questions through SQL queries. This project is ideal for those who are starting their journey in data analysis and want to build a solid foundation in SQL.
+This project focuses on building a structured retail sales database and conducting exploratory data analysis (EDA) to uncover key business insights. Using SQL, I dive into real-world sales data to answer impactful business questions, helping stakeholders make smarter decisions through data-driven storytelling.
+
+
 
 ## Objectives
 
-1. **Set up a retail sales database**: Create and populate a retail sales database with the provided sales data.
-2. **Data Cleaning**: Identify and remove any records with missing or null values.
-3. **Exploratory Data Analysis (EDA)**: Perform basic exploratory data analysis to understand the dataset.
-4. **Business Analysis**: Use SQL to answer specific business questions and derive insights from the sales data.
+1. **Set up the retail sales database**: Build and populate a robust database with the provided sales data to ensure a reliable analytical foundation..
+2. **Clean and prepare the data**: Detect and handle missing or null values to maintain data integrity for accurate analysis.
+3. **Exploratory Data Analysis (EDA)**: Perform exploratory data analysis (EDA) to uncover key patterns, trends, and insights.
+4. **Analyze business questions with SQL**: Use targeted SQL queries to extract actionable insights that address core business challenges.
+5. **Findings and recommendations**: Summarize insights clearly and provide strategic recommendations to drive informed business decisions.
+
 
 ## Project Structure
 
 ### 1. Database Setup
 
-- **Database Creation**: The project starts by creating a database named `p1_retail_db`.
-- **Table Creation**: A table named `retail_sales` is created to store the sales data. The table structure includes columns for transaction ID, sale date, sale time, customer ID, gender, age, product category, quantity sold, price per unit, cost of goods sold (COGS), and total sale amount.
+- **Database Creation**: The project starts by creating a database named `Retail Sales Project_db`.
+- **Table Creation**: A table named `retail` is created to store the sales data. The table structure includes columns for transaction ID, sale date, sale time, customer ID, gender, age, product category, quantity, price per unit, cost of goods sold (COGS), and total sale amount.
 
 ```sql
-CREATE DATABASE p1_retail_db;
+CREATE DATABASE Retail Sales Project_db;
 
-CREATE TABLE retail_sales
-(
-    transactions_id INT PRIMARY KEY,
-    sale_date DATE,	
-    sale_time TIME,
-    customer_id INT,	
-    gender VARCHAR(10),
-    age INT,
-    category VARCHAR(35),
-    quantity INT,
-    price_per_unit FLOAT,	
-    cogs FLOAT,
-    total_sale FLOAT
+CREATE TABLE retail(
+	transactions_id	INT PRIMARY KEY,
+	sale_date DATE,
+	sale_time TIME,
+	customer_id INT,
+	gender CHAR(1), 
+	age INT,
+	category VARCHAR(30),
+	quantity INT,
+	price_per_unit FLOAT,
+	cogs FLOAT,
+	total_sale FLOAT
 );
 ```
 
@@ -49,179 +52,178 @@ CREATE TABLE retail_sales
 - **Null Value Check**: Check for any null values in the dataset and delete records with missing data.
 
 ```sql
-SELECT COUNT(*) FROM retail_sales;
-SELECT COUNT(DISTINCT customer_id) FROM retail_sales;
-SELECT DISTINCT category FROM retail_sales;
-
-SELECT * FROM retail_sales
+SELECT COUNT(*) FROM retail;
+SELECT  COUNT(DISTINCT customer_id) FROM retail;
+SELECT  DISTINCT (category) FROM retail;
+SELECT * FROM retail
 WHERE 
-    sale_date IS NULL OR sale_time IS NULL OR customer_id IS NULL OR 
-    gender IS NULL OR age IS NULL OR category IS NULL OR 
-    quantity IS NULL OR price_per_unit IS NULL OR cogs IS NULL;
+    sale_date IS NULL OR sale_time IS NULL OR customer_id IS NULL 
+	OR gender IS NULL OR age IS NULL OR category IS NULL 
+	OR quantity IS NULL OR price_per_unit IS NULLOR cogs IS NULL;
 
-DELETE FROM retail_sales
+DELETE FROM retail
 WHERE 
     sale_date IS NULL OR sale_time IS NULL OR customer_id IS NULL OR 
     gender IS NULL OR age IS NULL OR category IS NULL OR 
     quantity IS NULL OR price_per_unit IS NULL OR cogs IS NULL;
 ```
 
-### 3. Data Analysis & Findings
+### 3. Data Analysis
 
 The following SQL queries were developed to answer specific business questions:
 
-1. **Write a SQL query to retrieve all columns for sales made on '2022-11-05**:
-```sql
-SELECT *
-FROM retail_sales
-WHERE sale_date = '2022-11-05';
-```
-
-2. **Write a SQL query to retrieve all transactions where the category is 'Clothing' and the quantity sold is more than 4 in the month of Nov-2022**:
-```sql
-SELECT 
-  *
-FROM retail_sales
-WHERE 
-    category = 'Clothing'
-    AND 
-    TO_CHAR(sale_date, 'YYYY-MM') = '2022-11'
-    AND
-    quantity >= 4
-```
-
-3. **Write a SQL query to calculate the total sales (total_sale) for each category.**:
-```sql
-SELECT 
-    category,
-    SUM(total_sale) as net_sale,
-    COUNT(*) as total_orders
-FROM retail_sales
-GROUP BY 1
-```
-
-4. **Write a SQL query to find the average age of customers who purchased items from the 'Beauty' category.**:
-```sql
-SELECT
-    ROUND(AVG(age), 2) as avg_age
-FROM retail_sales
-WHERE category = 'Beauty'
-```
-
-5. **Write a SQL query to find all transactions where the total_sale is greater than 1000.**:
-```sql
-SELECT * FROM retail_sales
-WHERE total_sale > 1000
-```
-
-6. **Write a SQL query to find the total number of transactions (transaction_id) made by each gender in each category.**:
+1. **What is the total number of transactions, and how do they break down by category and gender?**:
 ```sql
 SELECT 
     category,
     gender,
-    COUNT(*) as total_trans
-FROM retail_sales
-GROUP 
-    BY 
-    category,
-    gender
-ORDER BY 1
+    COUNT(*) as total_trans,
+	ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) AS percentage_of_total
+FROM retail
+GROUP BY 
+   (category,
+    gender)
+ORDER BY 1;
 ```
 
-7. **Write a SQL query to calculate the average sale for each month. Find out best selling month in each year**:
+2. **What is the total and average sales revenue per product category?
 ```sql
-SELECT 
-       year,
-       month,
-    avg_sale
-FROM 
-(    
-SELECT 
-    EXTRACT(YEAR FROM sale_date) as year,
-    EXTRACT(MONTH FROM sale_date) as month,
-    AVG(total_sale) as avg_sale,
-    RANK() OVER(PARTITION BY EXTRACT(YEAR FROM sale_date) ORDER BY AVG(total_sale) DESC) as rank
-FROM retail_sales
-GROUP BY 1, 2
-) as t1
-WHERE rank = 1
+SELECT
+	  category,
+        SUM(total_sale) AS total_sale,
+        ROUND(AVG(total_sale)) AS avg_sale
+    FROM retail
+GROUP BY category
+ORDER BY total_sale DESC;
 ```
 
-8. **Write a SQL query to find the top 5 customers based on the highest total sales **:
+3. ** Which gender contributes more to overall sales? What does the average sale per transaction look like for each gender?**:
 ```sql
 SELECT 
-    customer_id,
-    SUM(total_sale) as total_sales
-FROM retail_sales
-GROUP BY 1
-ORDER BY 2 DESC
+    gender,
+    SUM(total_sale) AS total_sales,
+    ROUND(AVG(total_sale)::numeric, 2) AS avg_sales,
+    ROUND((SUM(total_sale) * 100.0 / SUM(SUM(total_sale)) OVER ())::numeric, 2) AS pct_of_total_sales
+FROM retail
+GROUP BY gender
+ORDER BY total_sales DESC;
+```
+
+4. **What is the average quantity purchased and average unit price for each category? Which categories tend to have larger cart sizes?**:
+```sql
+SELECT 
+		Category,
+		ROUND(AVG(quantity)::numeric, 2) AS avg_qty,
+		ROUND(AVG(price_per_unit)::numeric, 2) AS avg_unit_price
+FROM retail
+GROUP BY category
+ORDER BY 2 DESC;
+```
+
+5. **Who are the top 5 customers by total spending?**:
+```sql
+SELECT 
+	customer_id,
+	COUNT(*) AS total_transactions,
+	SUM(total_sale) AS total_spending
+FROM retail
+GROUP BY customer_id
+ORDER BY total_spending DESC
 LIMIT 5
 ```
 
-9. **Write a SQL query to find the number of unique customers who purchased items from each category.**:
+6. **which month had the highest sales in each year?**:
 ```sql
-SELECT 
-    category,    
-    COUNT(DISTINCT customer_id) as cnt_unique_cs
-FROM retail_sales
-GROUP BY category
+WITH monthly_sales AS (
+    SELECT 
+        EXTRACT(YEAR FROM sale_date) AS year,
+        TO_CHAR(sale_date, 'Month') AS month,
+        TO_CHAR(sale_date, 'MM') AS month_number,
+        SUM(total_sale) AS total_monthly_sales
+    FROM retail
+    GROUP BY year, month, month_number
+)
+SELECT *
+FROM (
+    SELECT *,
+        RANK() OVER (PARTITION BY year ORDER BY total_monthly_sales DESC) AS rank_in_year
+    FROM monthly_sales
+) ranked
+WHERE rank_in_year = 1
+ORDER BY year;
 ```
 
-10. **Write a SQL query to create each shift and number of orders (Example Morning <12, Afternoon Between 12 & 17, Evening >17)**:
+7. **How many unique customers purchased items from each category? Are some categories dependent on repeat buyers or one-time customers?**:
 ```sql
-WITH hourly_sale
-AS
-(
-SELECT *,
-    CASE
-        WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
-        WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
-        ELSE 'Evening'
-    END as shift
-FROM retail_sales
-)
 SELECT 
-    shift,
-    COUNT(*) as total_orders    
-FROM hourly_sale
+    category,
+    COUNT(DISTINCT customer_id) AS unique_customers,
+    COUNT(customer_id) AS total_transactions,
+	ROUND(1.0 * COUNT(customer_id) / COUNT(DISTINCT customer_id), 2) AS avg_transactions_per_customer
+FROM retail
+GROUP BY category
+ORDER BY unique_customers DESC;
+```
+
+8. **What is the average age of customers for each category? Do certain categories attract younger or older demographics?**:
+```sql
+SELECT 
+		category,
+		ROUND(AVG(age)::numeric, 2) AS avg_customer_age
+FROM retail
+GROUP BY category
+ORDER BY avg_customer_age
+```
+
+9. **How do sales vary by time of day (Morning, Afternoon, Evening)? Which shift generates the most orders?**:
+```sql
+SELECT
+  CASE
+    WHEN sale_time <= '12:00:00' THEN 'Morning'
+    WHEN sale_time > '12:00:00' AND sale_time <= '17:00:00' THEN 'Afternoon'
+    ELSE 'Evening'
+  END AS shift,
+  COUNT(*) AS total_orders,
+  ROUND(SUM(total_sale)::numeric) AS total_sales
+FROM retail
 GROUP BY shift
+ORDER BY total_orders DESC;
+```
+
+10. **What percentage of transactions had a quantity above 3? How often do large orders occur, and in which categories?**:
+```sql
+WITH large_orders AS (
+    SELECT *
+    FROM retail
+    WHERE quantity > 3
+)
+
+SELECT 
+    category,
+    COUNT(*) AS large_order_count,
+    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM retail), 2) AS percentage_of_total,
+    ROUND(AVG(quantity), 2) AS avg_large_quantity
+FROM large_orders
+GROUP BY category
+ORDER BY percentage_of_total DESC;
 ```
 
 ## Findings
+Our analysis of transaction data reveals compelling insights into customer behavior, sales performance, and shopping patterns across product categories and demographics.
+- **Transaction Volume and Customer Demographics**: The total number of transactions shows that Clothing and Electronics dominate purchase volume, with male customers slightly leading in transaction counts. When examining sales revenue, Electronics emerges as the top-performing category, contributing the highest total and average sales amounts of $311445 and $309995 respectively, indicating both popularity and strong purchase value.
+- **Gender-Based Spending Patterns**: Gender-wise, female customers contribute 50.99% of overall sales and have a higher average sale per transaction, highlighting opportunities for targeted marketing to maintain and grow this segment. On the other hand, the average quantity and unit price data reveal that categories like Clothing tend to have larger cart sizes, while some categories have higher unit prices, reflecting premium positioning.
+- **High-Value Customers and Loyalty Potential**: An analysis of the top 5 customers by total spending reveals significant contributions to overall revenue, indicating their high value to the business. They  are not only frequent shoppers but also consistent spenders, making them ideal candidates for personalized loyalty programs, early access offers, or exclusive rewards.
+- **Repeat vs. One-Time Buyers by Category**: Customer purchasing frequency varies subtly across product categories, Electronics leads slightly with an average of 4.71 transactions per customer, followed closely by Clothing at 4.68, suggesting that these categories attract more repeat purchases. This indicates a steady customer interest possibly driven by varied product options or recurring needs. In contrast, Beauty records a lower average of 4.33 transactions per customer, hinting at a larger proportion of one-time buyers or less frequent repeat purchases. This trend may reflect trial-based buying or gifting behavior.
+- **Age Demographics and Category Preferences**: Beauty products attract a relatively younger audience with an average age of 40.42, while Electronics and Clothing appeal more to slightly older customers, averaging 41.60 and 41.93 years respectively. 
+- **Sales by Time of Day**:The Evening shift drives the highest transaction volume, suggesting that operational and marketing focus during this period can yield better results.
 
-- **Customer Demographics**: The dataset includes customers from various age groups, with sales distributed across different categories such as Clothing and Beauty.
-- **High-Value Transactions**: Several transactions had a total sale amount greater than 1000, indicating premium purchases.
-- **Sales Trends**: Monthly analysis shows variations in sales, helping identify peak seasons.
-- **Customer Insights**: The analysis identifies the top-spending customers and the most popular product categories.
+## Recommendations 
 
-## Reports
-
-- **Sales Summary**: A detailed report summarizing total sales, customer demographics, and category performance.
-- **Trend Analysis**: Insights into sales trends across different months and shifts.
-- **Customer Insights**: Reports on top customers and unique customer counts per category.
+- **Tailor Marketing by Gender and Product Affinity**: Capitalize on female shoppers' higher average spending and interest in premium items. Develop targeted campaigns and bundle offers based on gender-product dynamics, especially for categories like Clothing and Electronics.
+- **Launch Loyalty Programs for High-Spending Customers**: Introduce tiered rewards or VIP access for top customers who show both high transaction frequency and total spend. This builds retention and increases lifetime value.
+- **Boost Repeat Purchases Through Engagement Tactics**: Leverage product categories with strong repeat buying behavior such as Electronics and Clothing with reminders, upsells, or loyalty perks. For Beauty, consider trial-to-subscription strategies to convert one-time buyers into loyal customers.
+- **Design Demographic-Specific Campaigns**: Use age insights to drive messaging promote Beauty with trend-based language and influencer partnerships for younger buyers, and focus on durability, value, and reliability for Electronics and Clothing to appeal to slightly older customers.
+- **Maximize Evening Sales with Targeted Promotions**: Since the Evening is the busiest transaction period, increase visibility and promotions during this time. Run flash sales, retargeting ads, or limited-time offers to drive urgency during peak shopping hours.
 
 ## Conclusion
-
-This project serves as a comprehensive introduction to SQL for data analysts, covering database setup, data cleaning, exploratory data analysis, and business-driven SQL queries. The findings from this project can help drive business decisions by understanding sales patterns, customer behavior, and product performance.
-
-## How to Use
-
-1. **Clone the Repository**: Clone this project repository from GitHub.
-2. **Set Up the Database**: Run the SQL scripts provided in the `database_setup.sql` file to create and populate the database.
-3. **Run the Queries**: Use the SQL queries provided in the `analysis_queries.sql` file to perform your analysis.
-4. **Explore and Modify**: Feel free to modify the queries to explore different aspects of the dataset or answer additional business questions.
-
-## Author - Zero Analyst
-
-This project is part of my portfolio, showcasing the SQL skills essential for data analyst roles. If you have any questions, feedback, or would like to collaborate, feel free to get in touch!
-
-### Stay Updated and Join the Community
-
-For more content on SQL, data analysis, and other data-related topics, make sure to follow me on social media and join our community:
-
-- **YouTube**: [Subscribe to my channel for tutorials and insights](https://www.youtube.com/@zero_analyst)
-- **Instagram**: [Follow me for daily tips and updates](https://www.instagram.com/zero_analyst/)
-- **LinkedIn**: [Connect with me professionally](https://www.linkedin.com/in/najirr)
-- **Discord**: [Join our community to learn and grow together](https://discord.gg/36h5f2Z5PK)
-
-Thank you for your support, and I look forward to connecting with you!
+This analysis highlights critical patterns in customer behavior, category performance, and transaction trends that can directly inform business strategy and marketing decisions. From identifying high-value customers and peak sales periods to uncovering category preferences by age and purchase frequency, the data offers actionable insights that can improve both customer engagement and revenue generation.
